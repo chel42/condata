@@ -7,8 +7,12 @@ from pathlib import Path
 
 import pandas as pd
 
+from condata.core.correlations import compute_correlations
+from condata.core.outliers import detect_outliers
 from condata.core.profiler import profile_dataset
 from condata.core.quality import assess_quality
+from condata.core.readiness import assess_readiness
+from condata.core.statistics import compute_statistics
 from condata.models.config import AnalysisConfig
 from condata.models.schema import AnalysisResult, FileInfo
 from condata.utils.io import load_csv
@@ -54,15 +58,29 @@ class DatasetInspector:
         return self._frame
 
     def analyze(self) -> AnalysisResult:
-        """Exécute le profiling puis l'analyse de qualité."""
+        """Exécute le pipeline d'analyse jusqu'au ML Readiness Score."""
         frame = self.dataframe
         assert self._file_info is not None
         profile = profile_dataset(frame, self._file_info)
         quality = assess_quality(frame, self.config)
+        statistics = compute_statistics(frame, self.config)
+        outliers = detect_outliers(frame, self.config)
+        correlations = compute_correlations(frame, self.config)
+        readiness = assess_readiness(
+            frame,
+            self.config,
+            quality=quality,
+            outliers=outliers,
+            correlations=correlations,
+        )
         return AnalysisResult(
             version=_package_version(),
             config=self.config,
             file=self._file_info,
             profile=profile,
             quality=quality,
+            statistics=statistics,
+            outliers=outliers,
+            correlations=correlations,
+            readiness=readiness,
         )

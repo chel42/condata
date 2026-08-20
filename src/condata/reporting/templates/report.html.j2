@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CONDATA — {{ result.profile.file_name }}</title>
+  <style>{{ css | safe }}</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div>
+        <div class="brand">CONDATA</div>
+        <h1>{{ result.profile.file_name }}</h1>
+      </div>
+      <div class="meta">
+        {{ result.profile.n_rows }} lignes · {{ result.profile.n_columns }} colonnes<br>
+        {{ result.profile.file_size_bytes | bytes }} · analyse locale
+      </div>
+    </header>
+
+    <section class="grid scores">
+      <article class="card">
+        <div class="kicker">Data Quality Score</div>
+        <div class="big {{ quality_level }}">{{ result.quality.score }}<span> / 100</span></div>
+      </article>
+      <article class="card">
+        <div class="kicker">ML Readiness</div>
+        <div class="big {{ readiness_level }}">{{ result.readiness.score }}<span> / 100</span></div>
+        <p class="stat">{{ result.readiness.disclaimer }}</p>
+      </article>
+    </section>
+
+    <section class="grid cards" style="margin-top:16px">
+      <article class="card"><div class="stat">Lignes<b>{{ result.profile.n_rows }}</b></div></article>
+      <article class="card"><div class="stat">Colonnes<b>{{ result.profile.n_columns }}</b></div></article>
+      <article class="card"><div class="stat">Numériques<b>{{ result.profile.n_numeric }}</b></div></article>
+      <article class="card"><div class="stat">Catégorielles<b>{{ result.profile.n_categorical }}</b></div></article>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>ML Readiness checklist</h2>
+      <table>
+        <thead>
+          <tr><th>Check</th><th>Statut</th><th>Score</th><th>Détail</th></tr>
+        </thead>
+        <tbody>
+          {% for check in result.readiness.checks %}
+          <tr>
+            <td>{{ check.label }}</td>
+            <td><span class="badge {{ check.status }}">{{ check.status }}</span></td>
+            <td class="num">{{ check.score | num }} / {{ check.max_score | num }}</td>
+            <td>{{ check.message }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Schema</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Colonne</th><th>Type</th><th>Non-null</th><th>Unique</th><th>Manquant</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for column in result.profile.columns %}
+          <tr>
+            <td>{{ column.name }}</td>
+            <td>{{ column.semantic_type }}</td>
+            <td class="num">{{ column.non_null_pct | pct }}</td>
+            <td class="num">{{ column.unique_count }}</td>
+            <td class="num">{{ column.missing_pct | pct }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="grid two" style="margin-top:16px">
+      <article class="card">
+        <h2>Valeurs manquantes</h2>
+        <p class="stat">{{ result.quality.missing.overall_pct | pct }} des cellules</p>
+        {% if charts.missing %}
+        <div class="chart">{{ charts.missing | safe }}</div>
+        {% endif %}
+      </article>
+      <article class="card">
+        <h2>Doublons</h2>
+        <p class="stat">
+          {{ result.quality.duplicates.n_duplicates }} lignes
+          ({{ result.quality.duplicates.rate_pct | pct }})
+          · <span class="badge {{ result.quality.duplicates.status }}">{{ result.quality.duplicates.status }}</span>
+        </p>
+        <h2 style="margin-top:20px">Potential outliers</h2>
+        <p class="stat">{{ result.outliers.total_potential_outliers }} valeurs · méthode {{ result.outliers.method | upper }}</p>
+        <table>
+          {% for column in result.outliers.columns %}
+          <tr>
+            <td>{{ column.name }}</td>
+            <td class="num">{{ column.n_potential_outliers }}</td>
+            <td>{{ column.sample_values | join(', ') }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Statistiques</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Colonne</th><th>Moyenne</th><th>Médiane</th><th>Min</th><th>Max</th><th>Q1</th><th>Q3</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for col in result.statistics.numeric %}
+          <tr>
+            <td>{{ col.name }}</td>
+            <td class="num">{{ col.mean | num }}</td>
+            <td class="num">{{ col.median | num }}</td>
+            <td class="num">{{ col.min | num }}</td>
+            <td class="num">{{ col.max | num }}</td>
+            <td class="num">{{ col.q1 | num }}</td>
+            <td class="num">{{ col.q3 | num }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if result.statistics.categorical %}
+      <h2 style="margin-top:20px">Catégories</h2>
+      <table>
+        <thead><tr><th>Colonne</th><th>Modalités</th><th>Dominante</th><th>%</th></tr></thead>
+        <tbody>
+          {% for col in result.statistics.categorical %}
+          <tr>
+            <td>{{ col.name }}</td>
+            <td class="num">{{ col.n_categories }}</td>
+            <td>{{ col.dominant or '—' }}</td>
+            <td class="num">{{ col.dominant_pct | pct }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </section>
+
+    {% if charts %}
+    <section class="card" style="margin-top:16px">
+      <h2>Distributions et corrélations</h2>
+      {% for key, markup in charts.items() %}
+        {% if key != 'missing' %}
+        <div class="chart">{{ markup | safe }}</div>
+        {% endif %}
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <section class="card" style="margin-top:16px">
+      <h2>Warnings</h2>
+      {% if result.quality.issues %}
+      <table>
+        <thead><tr><th>Sévérité</th><th>Colonne</th><th>Message</th></tr></thead>
+        <tbody>
+          {% for issue in result.quality.issues %}
+          <tr>
+            <td><span class="badge {{ issue.severity }}">{{ issue.severity }}</span></td>
+            <td>{{ issue.column or '—' }}</td>
+            <td>{{ issue.message }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="stat">Aucun warning qualité.</p>
+      {% endif %}
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Recommendations</h2>
+      <ul class="recs">
+        {% for item in recommendations %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <footer>
+      CONDATA {{ result.version }} · généré le {{ result.generated_at.isoformat() }} ·
+      les données n'ont pas quitté cette machine.
+    </footer>
+  </div>
+</body>
+</html>

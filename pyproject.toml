@@ -43,9 +43,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/condata/condata"
-Documentation = "https://github.com/condata/condata#readme"
-Issues = "https://github.com/condata/condata/issues"
+Homepage = "https://github.com/chel42/condata"
+Documentation = "https://github.com/chel42/condata#readme"
+Issues = "https://github.com/chel42/condata/issues"
 
 [project.scripts]
 condata = "condata.cli.main:app"
@@ -83,7 +83,8 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["SIM117"]
+"tests/**/*.py" = ["SIM117", "E501"]
+"src/condata/cli/**/*.py" = ["B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

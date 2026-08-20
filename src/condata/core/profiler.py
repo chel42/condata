@@ -17,7 +17,7 @@ def profile_dataset(frame: pd.DataFrame, file_info: FileInfo) -> DatasetProfile:
     """Construit le profil structurel du dataset."""
     columns = [_profile_column(name, frame[name]) for name in frame.columns]
     type_counts = _count_semantic_types(columns)
-    n_rows = int(len(frame))
+    n_rows = len(frame)
     n_columns = int(frame.shape[1])
 
     return DatasetProfile(
@@ -37,7 +37,7 @@ def profile_dataset(frame: pd.DataFrame, file_info: FileInfo) -> DatasetProfile:
 
 
 def _profile_column(name: str, series: pd.Series) -> ColumnProfile:
-    n_rows = int(len(series))
+    n_rows = len(series)
     missing_count = int(series.isna().sum())
     non_null_count = n_rows - missing_count
     unique_count = int(series.nunique(dropna=True))

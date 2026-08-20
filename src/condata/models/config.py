@@ -30,13 +30,20 @@ class AnalysisConfig(BaseModel):
     duplicate_warning_pct: float = Field(default=1.0, ge=0, le=100)
     duplicate_critical_pct: float = Field(default=5.0, ge=0, le=100)
 
-    # --- Outliers (utilisés plus tard par core.outliers) ---
+    # --- Outliers (IQR par défaut : plus robuste que le Z-score) ---
     outlier_method: Literal["iqr", "zscore"] = "iqr"
     iqr_multiplier: float = Field(default=1.5, gt=0)
     zscore_threshold: float = Field(default=3.0, gt=0)
 
+    # --- Statistiques catégorielles ---
+    max_category_frequencies: int = Field(default=25, ge=1)
+
     # --- Corrélations ---
     correlation_strong_threshold: float = Field(default=0.8, gt=0, le=1)
+    correlation_redundant_threshold: float = Field(default=0.95, gt=0, le=1)
+
+    # --- ML Readiness ---
+    target_column: str | None = None
 
     # --- Barèmes du Quality Score (taux à partir duquel la composante = 0) ---
     missing_zero_score_pct: float = Field(default=25.0, gt=0, le=100)

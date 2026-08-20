@@ -8,9 +8,9 @@ documentées, chacune bornée :
 * Uniqueness (25 pts) — taux de lignes dupliquées.
   0 % doublons → 25 ; ≥ ``duplicate_zero_score_pct`` → 0 ; linéaire entre les deux.
 * Validity (20 pts) — colonnes au type mixte (nombres et texte mélangés).
-  20 au départ, −5 par colonne mixte (plancher 0).
+  20 au départ, -5 par colonne mixte (plancher 0).
 * Consistency (20 pts) — catégories quasi identiques (casse / espaces).
-  20 au départ, −5 par colonne incohérente (plancher 0).
+  20 au départ, -5 par colonne incohérente (plancher 0).
 
 CONDATA signale les problèmes ; il ne modifie pas les données.
 """
@@ -71,8 +71,7 @@ def assess_quality(
         0.0,
         WEIGHT_CONSISTENCY - PENALTY_PER_COLUMN * len(inconsistent_columns),
     )
-    total = int(round(completeness + uniqueness + validity + consistency))
-    total = min(100, max(0, total))
+    total = min(100, max(0, round(completeness + uniqueness + validity + consistency)))
 
     return QualityReport(
         score=total,
@@ -94,7 +93,7 @@ def _missing_report(
     config: AnalysisConfig,
     issues: list[QualityIssue],
 ) -> MissingValuesReport:
-    n_rows = int(len(frame))
+    n_rows = len(frame)
     n_cols = int(frame.shape[1])
     total_cells = n_rows * n_cols
     total_missing = int(frame.isna().sum().sum())
@@ -146,7 +145,7 @@ def _duplicate_report(
     config: AnalysisConfig,
     issues: list[QualityIssue],
 ) -> DuplicateReport:
-    n_rows = int(len(frame))
+    n_rows = len(frame)
     n_duplicates = int(frame.duplicated().sum())
     rate_pct = _pct(n_duplicates, n_rows)
     status = _status(
@@ -216,7 +215,8 @@ def _inconsistent_categorical_columns(
                     column=str(name),
                     message=(
                         "Incohérence catégorielle possible "
-                        f"({raw_nunique} formes brutes, {normalized_nunique} après normalisation)."
+                        f"({raw_nunique} formes brutes, "
+                        f"{normalized_nunique} après normalisation)."
                     ),
                 )
             )
