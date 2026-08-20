@@ -1,0 +1,112 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "condata"
+version = "0.1.0"
+description = "Bibliothèque Python et CLI locale d'audit de qualité des datasets."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "CONDATA" }]
+keywords = [
+    "data-quality",
+    "data-profiling",
+    "csv",
+    "cli",
+    "pandas",
+    "machine-learning",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "pydantic>=2.0",
+    "typer>=0.12",
+    "rich>=13.0",
+    "jinja2>=3.1",
+    "plotly>=5.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/condata/condata"
+Documentation = "https://github.com/condata/condata#readme"
+Issues = "https://github.com/condata/condata/issues"
+
+[project.scripts]
+condata = "condata.cli.main:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pandas-stubs>=2.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/condata"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/condata",
+    "tests",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "pyproject.toml",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["SIM117"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["-q", "--strict-markers"]
+
+[tool.coverage.run]
+source = ["condata"]
+branch = true
+
+[tool.coverage.report]
+omit = ["src/condata/cli/**", "src/condata/reporting/**"]
+show_missing = true
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["condata"]
+mypy_path = "src"
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["plotly.*"]
+ignore_missing_imports = true
