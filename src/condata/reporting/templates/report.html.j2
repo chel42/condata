@@ -3,195 +3,402 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CONDATA — {{ result.profile.file_name }}</title>
+  <title>CONDATA — Rapport d'analyse — {{ result.profile.file_name }}</title>
   <style>{{ css | safe }}</style>
 </head>
 <body>
-  <div class="wrap">
+  {% set circ = 276.46 %}
+  {% set ring_track = 'rgba(255,255,255,0.10)' %}
+  {% macro ring_color(level) -%}
+    {%- if level == 'good' -%}#39FF14{%- elif level == 'mid' -%}#FFB800{%- else -%}#FF4D6D{%- endif -%}
+  {%- endmacro %}
+  <div class="page">
+    <div class="pixels" aria-hidden="true">
+      <span class="px l px-teal p1"></span>
+      <span class="px px-cyan p2"></span>
+      <span class="px s px-neon p3"></span>
+      <span class="px px-gold p4"></span>
+      <span class="px s px-teal p5"></span>
+      <span class="px px-navy p6"></span>
+      <span class="px px-neon p7"></span>
+      <span class="px s px-cyan p8"></span>
+      <span class="px px-gold p9"></span>
+    </div>
+
     <header class="hero">
-      <div>
-        <div class="brand">CONDATA</div>
-        <h1>{{ result.profile.file_name }}</h1>
+      <div class="topbar">
+        <div class="brand">
+          {% if logo_src %}
+          <img class="brand-logo" src="{{ logo_src }}" alt="CONDATA">
+          {% else %}
+          <div class="brand-fallback">CONDATA<small>Congo + Data</small></div>
+          {% endif %}
+        </div>
+        <div class="title">
+          <h1>Rapport d'analyse — {{ result.profile.file_name }}</h1>
+          <p>Analyse complète de la qualité des données et préparation Machine Learning</p>
+        </div>
+        <div class="actions">
+          <button class="btn" id="btn-export" type="button">Exporter ▾</button>
+          <div class="menu" id="export-menu">
+            <button type="button" id="export-html">Exporter HTML</button>
+            <button type="button" id="export-json">Exporter JSON</button>
+          </div>
+          <button class="btn primary" id="btn-share" type="button">Partager</button>
+        </div>
       </div>
-      <div class="meta">
-        {{ result.profile.n_rows }} lignes · {{ result.profile.n_columns }} colonnes<br>
-        {{ result.profile.file_size_bytes | bytes }} · analyse locale
-      </div>
+      <div class="hero-rule"></div>
     </header>
 
-    <section class="grid scores">
+    <div class="meta">
+      <span>Analyse locale</span>
+      <span>{{ generated_label }}</span>
+      <span>{{ result.profile.file_size_bytes | bytes }}</span>
+      <span>Format : CSV</span>
+    </div>
+
+    <section class="kpi-row">
+      <article class="card score-card">
+        <div>
+          <div class="kicker">DATA QUALITY SCORE</div>
+          <div class="big {{ quality_level }}">{{ result.quality.score }}<span>/100</span></div>
+          <span class="pill {{ quality_level }}">{{ quality_badge }}</span>
+        </div>
+        <div class="ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="44" stroke="{{ ring_track }}" stroke-width="8" fill="none"/>
+            <circle cx="50" cy="50" r="44" stroke="{{ ring_color(quality_level) }}" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ circ * (1 - result.quality.score / 100) }}"/>
+          </svg>
+        </div>
+        <div class="score-foot">Analyse locale — pas d'historique de comparaison</div>
+      </article>
+
+      <article class="card score-card">
+        <div>
+          <div class="kicker">ML READINESS SCORE</div>
+          <div class="big {{ readiness_level }}">{{ result.readiness.score }}<span>/100</span></div>
+          <span class="pill {{ readiness_level }}">{{ readiness_badge }}</span>
+        </div>
+        <div class="ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="44" stroke="{{ ring_track }}" stroke-width="8" fill="none"/>
+            <circle cx="50" cy="50" r="44" stroke="{{ ring_color(readiness_level) }}" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ circ * (1 - result.readiness.score / 100) }}"/>
+          </svg>
+        </div>
+        <div class="score-foot">{{ result.readiness.disclaimer }}</div>
+      </article>
+
+      <div class="stat-grid">
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#00b4a8,#39ff14)">▣</div><div><small>Lignes</small><b>{{ result.profile.n_rows | intspace }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#0a4a8a,#00e5ff)">▤</div><div><small>Colonnes</small><b>{{ result.profile.n_columns }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#051937,#00b4a8)">▦</div><div><small>Taille du fichier</small><b>{{ result.profile.file_size_bytes | bytes }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#00b4a8,#00e5ff)">Σ</div><div><small>Entiers</small><b>{{ result.profile.n_integer }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#c48900,#ffb800)">≈</div><div><small>Réels</small><b>{{ result.profile.n_float }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#0a2f5c,#39ff14)">📅</div><div><small>Date/heure</small><b>{{ result.profile.n_datetime }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#00b4a8,#39ff14)">Aa</div><div><small>Texte</small><b>{{ result.profile.n_text }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#0a4a8a,#00e5ff)">01</div><div><small>Booléens</small><b>{{ result.profile.n_boolean }}</b></div></div>
+        <div class="mini"><div class="icon" style="background:linear-gradient(180deg,#051937,#00b4a8)">■</div><div><small>Constantes</small><b>{{ result.profile.n_constant }}</b></div></div>
+      </div>
+    </section>
+
+    <section class="charts-row">
       <article class="card">
-        <div class="kicker">Data Quality Score</div>
-        <div class="big {{ quality_level }}">{{ result.quality.score }}<span> / 100</span></div>
+        <h2>Aperçu de la qualité des données</h2>
+        {% if charts.overview %}
+        <div class="chart">{{ charts.overview | safe }}</div>
+        {% else %}
+        <p class="empty">Pas de vérifications à afficher.</p>
+        {% endif %}
       </article>
       <article class="card">
-        <div class="kicker">ML Readiness</div>
-        <div class="big {{ readiness_level }}">{{ result.readiness.score }}<span> / 100</span></div>
-        <p class="stat">{{ result.readiness.disclaimer }}</p>
-      </article>
-    </section>
-
-    <section class="grid cards" style="margin-top:16px">
-      <article class="card"><div class="stat">Lignes<b>{{ result.profile.n_rows }}</b></div></article>
-      <article class="card"><div class="stat">Colonnes<b>{{ result.profile.n_columns }}</b></div></article>
-      <article class="card"><div class="stat">Numériques<b>{{ result.profile.n_numeric }}</b></div></article>
-      <article class="card"><div class="stat">Catégorielles<b>{{ result.profile.n_categorical }}</b></div></article>
-    </section>
-
-    <section class="card" style="margin-top:16px">
-      <h2>ML Readiness checklist</h2>
-      <table>
-        <thead>
-          <tr><th>Check</th><th>Statut</th><th>Score</th><th>Détail</th></tr>
-        </thead>
-        <tbody>
-          {% for check in result.readiness.checks %}
-          <tr>
-            <td>{{ check.label }}</td>
-            <td><span class="badge {{ check.status }}">{{ check.status }}</span></td>
-            <td class="num">{{ check.score | num }} / {{ check.max_score | num }}</td>
-            <td>{{ check.message }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </section>
-
-    <section class="card" style="margin-top:16px">
-      <h2>Schema</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Colonne</th><th>Type</th><th>Non-null</th><th>Unique</th><th>Manquant</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for column in result.profile.columns %}
-          <tr>
-            <td>{{ column.name }}</td>
-            <td>{{ column.semantic_type }}</td>
-            <td class="num">{{ column.non_null_pct | pct }}</td>
-            <td class="num">{{ column.unique_count }}</td>
-            <td class="num">{{ column.missing_pct | pct }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </section>
-
-    <section class="grid two" style="margin-top:16px">
-      <article class="card">
-        <h2>Valeurs manquantes</h2>
-        <p class="stat">{{ result.quality.missing.overall_pct | pct }} des cellules</p>
+        <h2>Valeurs manquantes par colonne</h2>
         {% if charts.missing %}
         <div class="chart">{{ charts.missing | safe }}</div>
+        {% else %}
+        <p class="empty">Aucune valeur manquante.</p>
         {% endif %}
       </article>
       <article class="card">
-        <h2>Doublons</h2>
-        <p class="stat">
-          {{ result.quality.duplicates.n_duplicates }} lignes
-          ({{ result.quality.duplicates.rate_pct | pct }})
-          · <span class="badge {{ result.quality.duplicates.status }}">{{ result.quality.duplicates.status }}</span>
-        </p>
-        <h2 style="margin-top:20px">Potential outliers</h2>
-        <p class="stat">{{ result.outliers.total_potential_outliers }} valeurs · méthode {{ result.outliers.method | upper }}</p>
-        <table>
-          {% for column in result.outliers.columns %}
-          <tr>
-            <td>{{ column.name }}</td>
-            <td class="num">{{ column.n_potential_outliers }}</td>
-            <td>{{ column.sample_values | join(', ') }}</td>
-          </tr>
-          {% endfor %}
-        </table>
+        <h2>Distribution{% if distribution_column %} de {{ distribution_column }}{% endif %}</h2>
+        {% if charts.distribution %}
+        <div class="chart">{{ charts.distribution | safe }}</div>
+        {% else %}
+        <p class="empty">Pas de colonne entière ou réelle à représenter.</p>
+        {% endif %}
       </article>
     </section>
 
-    <section class="card" style="margin-top:16px">
-      <h2>Statistiques</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Colonne</th><th>Moyenne</th><th>Médiane</th><th>Min</th><th>Max</th><th>Q1</th><th>Q3</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for col in result.statistics.numeric %}
-          <tr>
-            <td>{{ col.name }}</td>
-            <td class="num">{{ col.mean | num }}</td>
-            <td class="num">{{ col.median | num }}</td>
-            <td class="num">{{ col.min | num }}</td>
-            <td class="num">{{ col.max | num }}</td>
-            <td class="num">{{ col.q1 | num }}</td>
-            <td class="num">{{ col.q3 | num }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% if result.statistics.categorical %}
-      <h2 style="margin-top:20px">Catégories</h2>
-      <table>
-        <thead><tr><th>Colonne</th><th>Modalités</th><th>Dominante</th><th>%</th></tr></thead>
-        <tbody>
-          {% for col in result.statistics.categorical %}
-          <tr>
-            <td>{{ col.name }}</td>
-            <td class="num">{{ col.n_categories }}</td>
-            <td>{{ col.dominant or '—' }}</td>
-            <td class="num">{{ col.dominant_pct | pct }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% endif %}
-    </section>
-
-    {% if charts %}
-    <section class="card" style="margin-top:16px">
-      <h2>Distributions et corrélations</h2>
-      {% for key, markup in charts.items() %}
-        {% if key != 'missing' %}
-        <div class="chart">{{ markup | safe }}</div>
+    <section class="audit-row">
+      <article class="card">
+        <h2>Doublons</h2>
+        <div class="kpi-inline">
+          <div>
+            <small>Lignes dupliquées</small>
+            <b>{{ result.quality.duplicates.n_duplicates | intspace }}</b>
+          </div>
+          <div>
+            <small>Taux</small>
+            <b>{{ result.quality.duplicates.rate_pct | pct }}</b>
+          </div>
+          <div>
+            <small>Statut</small>
+            <span class="pill {{ result.quality.duplicates.status | statuslevel }}">{{ result.quality.duplicates.status | statusfr }}</span>
+          </div>
+        </div>
+        {% if result.quality.duplicates.n_duplicates == 0 %}
+        <p class="empty">Aucune ligne dupliquée détectée.</p>
+        {% else %}
+        <p class="note">Comparaison de lignes entières. CONDATA signale les doublons, il ne les supprime pas.</p>
         {% endif %}
-      {% endfor %}
-    </section>
-    {% endif %}
+      </article>
 
-    <section class="card" style="margin-top:16px">
-      <h2>Warnings</h2>
-      {% if result.quality.issues %}
-      <table>
-        <thead><tr><th>Sévérité</th><th>Colonne</th><th>Message</th></tr></thead>
-        <tbody>
-          {% for issue in result.quality.issues %}
-          <tr>
-            <td><span class="badge {{ issue.severity }}">{{ issue.severity }}</span></td>
-            <td>{{ issue.column or '—' }}</td>
-            <td>{{ issue.message }}</td>
-          </tr>
+      <article class="card">
+        <h2>Warnings</h2>
+        {% if warnings %}
+        <ul class="issues">
+          {% for item in warnings %}
+          <li>
+            <span class="pill {{ item.severity | statuslevel }}">{{ item.severity | statusfr }}</span>
+            <div>
+              <strong>{{ item.column }}</strong>
+              <p>{{ item.message }}</p>
+            </div>
+          </li>
           {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p class="stat">Aucun warning qualité.</p>
-      {% endif %}
+        </ul>
+        {% else %}
+        <p class="empty">Aucun warning détecté.</p>
+        {% endif %}
+      </article>
+
+      <article class="card card-outliers">
+        <h2>Outliers</h2>
+        <div class="kpi-inline">
+          <div>
+            <small>Potential outliers</small>
+            <b>{{ result.outliers.total_potential_outliers | intspace }}</b>
+          </div>
+          <div>
+            <small>Colonnes concernées</small>
+            <b>{{ result.outliers.n_columns_with_outliers }} / {{ result.outliers.n_columns_analyzed }}</b>
+          </div>
+          <div>
+            <small>Méthode</small>
+            <b>{{ result.outliers.method | upper }}</b>
+          </div>
+        </div>
+        {% if result.outliers.columns %}
+        <div class="table-wrap">
+          <table class="data outliers">
+            <thead>
+              <tr>
+                <th>Colonne</th>
+                <th class="num">Nombre</th>
+                <th class="num">Taux</th>
+                <th class="num">Bornes</th>
+                <th>Échantillon</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for column in result.outliers.columns %}
+              <tr>
+                <td>{{ column.name }}</td>
+                {% if column.skipped_reason %}
+                <td colspan="4" class="muted">{{ column.skipped_reason | skipfr }}</td>
+                {% else %}
+                <td class="num {% if column.n_potential_outliers %}warn{% endif %}">{{ column.n_potential_outliers | intspace }}</td>
+                <td class="num">{{ column.rate_pct | pct }}</td>
+                <td class="num">{{ column.lower_bound | num }}&nbsp;→&nbsp;{{ column.upper_bound | num }}</td>
+                <td class="clip" title="{% if column.sample_values %}{{ column.sample_values | map('string') | join(', ') }}{% endif %}">{% if column.sample_values %}{{ column.sample_values | map('string') | join(', ') }}{% else %}—{% endif %}</td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Ce sont des <em>potential outliers</em> : une valeur hors-norme n'est pas forcément une erreur.</p>
+        {% else %}
+        <p class="empty">Pas de colonne entière ou réelle à analyser.</p>
+        {% endif %}
+      </article>
     </section>
 
-    <section class="card" style="margin-top:16px">
-      <h2>Recommendations</h2>
-      <ul class="recs">
-        {% for item in recommendations %}
-        <li>{{ item }}</li>
-        {% endfor %}
-      </ul>
+    <section class="stats-block">
+      <article class="card">
+        <h2>Statistiques</h2>
+        <h3>Entiers et réels</h3>
+        {% if result.statistics.numeric %}
+        <div class="table-wrap">
+          <table class="data stats-numeric">
+            <thead>
+              <tr>
+                <th>Colonne</th>
+                <th class="num">N</th>
+                <th class="num">Moyenne</th>
+                <th class="num">Médiane</th>
+                <th class="num">Min</th>
+                <th class="num">Max</th>
+                <th class="num">Écart-type</th>
+                <th class="num">Q1</th>
+                <th class="num">Q3</th>
+                <th class="num">P5</th>
+                <th class="num">P95</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for column in result.statistics.numeric %}
+              <tr>
+                <td>{{ column.name }}</td>
+                <td class="num">{{ column.count | intspace }}</td>
+                <td class="num">{{ column.mean | num }}</td>
+                <td class="num">{{ column.median | num }}</td>
+                <td class="num">{{ column.min | num }}</td>
+                <td class="num">{{ column.max | num }}</td>
+                <td class="num">{{ column.std | num }}</td>
+                <td class="num">{{ column.q1 | num }}</td>
+                <td class="num">{{ column.q3 | num }}</td>
+                <td class="num">{{ column.p5 | num }}</td>
+                <td class="num">{{ column.p95 | num }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="empty">Pas de colonne entière ou réelle.</p>
+        {% endif %}
+
+        <h3>Texte et booléens</h3>
+        {% if result.statistics.categorical %}
+        <div class="table-wrap">
+          <table class="data stats-cat">
+            <thead>
+              <tr>
+                <th>Colonne</th>
+                <th class="num">Catégories</th>
+                <th>Dominante</th>
+                <th class="num">Fréquence</th>
+                <th class="num">Part</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for column in result.statistics.categorical %}
+              <tr>
+                <td>{{ column.name }}</td>
+                <td class="num">{{ column.n_categories | intspace }}</td>
+                <td class="clip" title="{{ column.dominant or '' }}">{{ column.dominant or '—' }}</td>
+                <td class="num">{{ column.dominant_count | intspace }}</td>
+                <td class="num">{{ column.dominant_pct | pct }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if stats_truncated %}
+        <p class="note">Certaines distributions sont tronquées dans le JSON (haute cardinalité). Le tableau HTML affiche la catégorie dominante.</p>
+        {% endif %}
+        {% else %}
+        <p class="empty">Pas de colonne texte ou booléenne.</p>
+        {% endif %}
+      </article>
     </section>
 
-    <footer>
-      CONDATA {{ result.version }} · généré le {{ result.generated_at.isoformat() }} ·
-      les données n'ont pas quitté cette machine.
-    </footer>
+    <section class="schema-block">
+      <article class="card">
+        <h2>Aperçu des colonnes</h2>
+        <div class="table-wrap">
+        <table class="data schema">
+          <thead>
+            <tr>
+              <th>Colonne</th>
+              <th>Type</th>
+              <th class="num">Non nuls</th>
+              <th class="num">Uniques</th>
+              <th class="num">Doublons</th>
+              <th class="num">Manquantes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for column in result.profile.columns %}
+            {% set extras = column.non_null_count - column.unique_count %}
+            <tr>
+              <td>{{ column.name }}</td>
+              <td>{{ column.semantic_type | typefr }}</td>
+              <td class="num">{{ column.non_null_count | intspace }}</td>
+              <td class="num">{{ column.unique_count | intspace }}</td>
+              <td class="num">{{ extras | intspace }}&nbsp;({{ (100 * extras / column.non_null_count) | pct if column.non_null_count else '0.0 %' }})</td>
+              <td class="num {% if column.missing_pct >= 20 %}warn{% endif %}">{{ column.missing_pct | pct }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="detail-row">
+      <article class="card">
+        <h2>Corrélations (numériques)</h2>
+        {% if charts.heatmap %}
+        <div class="chart">{{ charts.heatmap | safe }}</div>
+        {% else %}
+        <p class="empty">Pas assez de colonnes entières ou réelles pour une matrice de corrélation.</p>
+        {% endif %}
+      </article>
+      <article class="card">
+        <h2>Recommandations principales</h2>
+        <ul class="recs">
+          {% for item in recommendations %}
+          <li>
+            <details {% if loop.first %}open{% endif %}>
+              <summary>{{ item.title }}</summary>
+              <p>{{ item.detail }}</p>
+            </details>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+    </section>
+
+    <footer><span class="wordmark">CONDATA</span> v{{ result.version }} — Data Quality &amp; Profiling · les données n'ont pas quitté cette machine</footer>
   </div>
+
+  <div class="toast" id="toast"></div>
+  <script type="application/json" id="condata-json">{{ json_payload | safe }}</script>
+  <script>
+    const menu = document.getElementById("export-menu");
+    const toast = document.getElementById("toast");
+    const jsonText = document.getElementById("condata-json").textContent;
+    function show(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+    document.getElementById("btn-export").onclick = () => menu.classList.toggle("open");
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".actions")) menu.classList.remove("open");
+    });
+    document.getElementById("export-html").onclick = () => {
+      const blob = new Blob([document.documentElement.outerHTML], {type: "text/html"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "{{ result.profile.file_name }}-condata.html";
+      a.click();
+      show("HTML exporté");
+    };
+    document.getElementById("export-json").onclick = () => {
+      const blob = new Blob([jsonText], {type: "application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "{{ result.profile.file_name }}-condata.json";
+      a.click();
+      show("JSON exporté");
+    };
+    document.getElementById("btn-share").onclick = async () => {
+      const text = "CONDATA — {{ result.profile.file_name }} · Quality {{ result.quality.score }}/100 · ML {{ result.readiness.score }}/100 (analyse locale)";
+      try { await navigator.clipboard.writeText(text); show("Résumé copié (données locales)"); }
+      catch { show("Copie impossible"); }
+    };
+  </script>
 </body>
 </html>

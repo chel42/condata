@@ -9,7 +9,7 @@ documentées, chacune bornée :
   0 % doublons → 25 ; ≥ ``duplicate_zero_score_pct`` → 0 ; linéaire entre les deux.
 * Validity (20 pts) — colonnes au type mixte (nombres et texte mélangés).
   20 au départ, -5 par colonne mixte (plancher 0).
-* Consistency (20 pts) — catégories quasi identiques (casse / espaces).
+* Consistency (20 pts) — texte quasi identique (casse / espaces).
   20 au départ, -5 par colonne incohérente (plancher 0).
 
 CONDATA signale les problèmes ; il ne modifie pas les données.
@@ -173,7 +173,7 @@ def _mixed_type_columns(frame: pd.DataFrame, issues: list[QualityIssue]) -> list
     mixed: list[str] = []
     for name in frame.columns:
         series = frame[name]
-        if infer_semantic_type(series) != "categorical":
+        if infer_semantic_type(series) != "text":
             continue
         sample = series.dropna().astype(str).str.strip()
         if sample.empty:
@@ -199,7 +199,7 @@ def _inconsistent_categorical_columns(
     inconsistent: list[str] = []
     for name in frame.columns:
         series = frame[name]
-        if infer_semantic_type(series) != "categorical":
+        if infer_semantic_type(series) != "text":
             continue
         text = series.dropna().astype(str)
         if text.empty:
@@ -214,7 +214,7 @@ def _inconsistent_categorical_columns(
                     severity="warning",
                     column=str(name),
                     message=(
-                        "Incohérence catégorielle possible "
+                        "Incohérence de texte possible "
                         f"({raw_nunique} formes brutes, "
                         f"{normalized_nunique} après normalisation)."
                     ),

@@ -13,6 +13,8 @@ détecte les problèmes, calcule un score de préparation ML, affiche un résum�
 dans le terminal, puis génère un rapport HTML interactif ouvert dans le
 navigateur. Aucune donnée n'est envoyée vers un serveur.
 
+Documentation : [docs/index.md](docs/index.md) (rapport HTML, scores, CLI / API).
+
 ## CLI
 
 ```bash
@@ -42,8 +44,8 @@ result.export_json("report.json")
 
 ## Ce que l'outil fait (MVP)
 
-- Profiling (lignes, colonnes, types, cardinalité)
-- Valeurs manquantes, doublons, incohérences catégorielles
+- Profiling (lignes, colonnes, types connus : entier, réel, date/heure, texte, booléen)
+- Valeurs manquantes, doublons, incohérences de texte (casse / espaces)
 - Statistiques descriptives
 - Potential outliers (IQR / Z-score)
 - Corrélations Pearson

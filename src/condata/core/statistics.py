@@ -1,10 +1,10 @@
-"""Statistiques descriptives (numériques et catégorielles).
+"""Statistiques descriptives (entiers, réels, texte, booléens).
 
-Pour les colonnes numériques : moyenne, médiane, min/max, écart-type,
+Pour les colonnes entières et réelles : moyenne, médiane, min/max, écart-type,
 quartiles (Q1/Q3) et percentiles (5, 25, 50, 75, 95).
 
-Pour les colonnes catégorielles et booléennes : nombre de catégories,
-fréquences, catégorie dominante et distribution. Les fréquences sont
+Pour les colonnes texte et booléennes : nombre de valeurs distinctes,
+fréquences, valeur dominante et distribution. Les fréquences sont
 tronquées à ``AnalysisConfig.max_category_frequencies`` pour éviter
 d'exploser le rapport sur une colonne à haute cardinalité.
 """
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from condata.core.profiler import infer_semantic_type
+from condata.core.profiler import infer_semantic_type, is_numeric_type
 from condata.models.config import AnalysisConfig
 from condata.models.schema import (
     CategoricalColumnStats,
@@ -38,9 +38,9 @@ def compute_statistics(
         series = frame[name]
         kind = infer_semantic_type(series)
         column_name = str(name)
-        if kind == "numeric":
+        if is_numeric_type(kind):
             numeric.append(_numeric_stats(column_name, series))
-        elif kind in {"categorical", "boolean"}:
+        elif kind in {"text", "boolean"}:
             categorical.append(
                 _categorical_stats(
                     column_name,

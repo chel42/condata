@@ -28,7 +28,7 @@ import pandas as pd
 
 from condata.core.correlations import compute_correlations
 from condata.core.outliers import detect_outliers
-from condata.core.profiler import infer_semantic_type
+from condata.core.profiler import infer_semantic_type, is_numeric_type
 from condata.core.quality import assess_quality
 from condata.models.config import AnalysisConfig
 from condata.models.schema import (
@@ -319,7 +319,7 @@ def _check_class_balance(frame: pd.DataFrame, target: str | None) -> ReadinessCh
             "Cible introuvable : équilibre des classes non évalué.",
         )
     series = frame[target]
-    if infer_semantic_type(series) == "numeric":
+    if is_numeric_type(infer_semantic_type(series)):
         return _check(
             "class_balance",
             "Class balance",

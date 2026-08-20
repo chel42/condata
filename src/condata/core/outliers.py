@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from condata.core.profiler import infer_semantic_type
+from condata.core.profiler import infer_semantic_type, is_numeric_type
 from condata.models.config import AnalysisConfig
 from condata.models.schema import ColumnOutliers, OutlierReport
 
@@ -32,7 +32,7 @@ def detect_outliers(
 
     for name in frame.columns:
         series = frame[name]
-        if infer_semantic_type(series) != "numeric":
+        if not is_numeric_type(infer_semantic_type(series)):
             continue
         columns.append(_analyze_column(str(name), series, cfg))
 

@@ -10,6 +10,8 @@
 - Détection de potential outliers (IQR / Z-score)
 - Corrélations Pearson (matrice, paires fortes, redondance, multicolinéarité)
 - ML Readiness Score (heuristique, 8 checks documentés)
+- Types de colonnes connus (entier, réel, date/heure, texte, booléen) — pas de type « catégoriel »
 - Rapports HTML (Jinja2 / Plotly), JSON et résumé terminal (Rich)
+- Blocs HTML dédiés : Doublons, Statistiques, Warnings, Outliers
 - CLI `condata analyze`
 - CI GitHub Actions (pytest + ruff)

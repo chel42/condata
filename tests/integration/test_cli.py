@@ -35,7 +35,11 @@ def test_analyze_writes_html(valid_csv: Path, tmp_path: Path) -> None:
     assert out.exists()
     html = out.read_text(encoding="utf-8")
     assert "CONDATA" in html
-    assert "Data Quality Score" in html
+    assert "DATA QUALITY SCORE" in html
+    assert "Doublons" in html
+    assert "Warnings" in html
+    assert "Outliers" in html
+    assert "Statistiques" in html
     assert "valid.csv" in html
 
 
@@ -58,5 +62,5 @@ def test_python_export_api(valid_csv: Path, tmp_path: Path) -> None:
     html = result.export_html(tmp_path / "api.html", frame=inspector.dataframe)
     json_path = result.export_json(tmp_path / "api.json")
     assert html.exists()
-    assert "Potential outliers" in html.read_text(encoding="utf-8")
+    assert "potential outliers" in html.read_text(encoding="utf-8").lower()
     assert json.loads(json_path.read_text(encoding="utf-8"))["file"]["name"] == "valid.csv"

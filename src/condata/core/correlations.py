@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from condata.core.profiler import infer_semantic_type
+from condata.core.profiler import infer_semantic_type, is_numeric_type
 from condata.models.config import AnalysisConfig
 from condata.models.schema import (
     CorrelationPair,
@@ -70,7 +70,7 @@ def _numeric_frame(frame: pd.DataFrame) -> pd.DataFrame:
     columns = [
         name
         for name in frame.columns
-        if infer_semantic_type(frame[name]) == "numeric"
+        if is_numeric_type(infer_semantic_type(frame[name]))
     ]
     if not columns:
         return pd.DataFrame(index=frame.index)

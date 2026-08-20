@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from condata.models.config import AnalysisConfig
 
-SemanticType = Literal["numeric", "categorical", "datetime", "boolean", "unknown"]
+SemanticType = Literal["integer", "float", "datetime", "text", "boolean", "unknown"]
 Severity = Literal["info", "warning", "critical"]
 Status = Literal["ok", "warning", "critical"]
 
@@ -44,8 +44,9 @@ class DatasetProfile(BaseModel):
     file_size_bytes: int
     n_rows: int
     n_columns: int
-    n_numeric: int
-    n_categorical: int
+    n_integer: int
+    n_float: int
+    n_text: int
     n_datetime: int
     n_boolean: int
     n_constant: int

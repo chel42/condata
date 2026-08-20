@@ -22,10 +22,12 @@ def test_profile_counts(clean_df: pd.DataFrame) -> None:
     profile = profile_dataset(clean_df, _file_info())
     assert profile.n_rows == 4
     assert profile.n_columns == 3
-    assert profile.n_numeric == 2
-    assert profile.n_categorical == 1
+    assert profile.n_integer == 1
+    assert profile.n_float == 1
+    assert profile.n_text == 1
     assert profile.file_size_bytes == 128
     assert profile.columns[0].name == "age"
+    assert profile.columns[0].semantic_type == "integer"
     assert profile.columns[0].missing_count == 0
 
 
@@ -38,10 +40,14 @@ def test_profile_detects_missing_and_constant(messy_df: pd.DataFrame) -> None:
     assert profile.n_constant >= 1
 
 
-def test_infer_datetime_and_numeric() -> None:
+def test_infer_known_types() -> None:
     dates = pd.Series(["2024-01-01", "2024-02-01", "2024-03-01"])
-    numbers = pd.Series([1, 2, 3])
+    integers = pd.Series([1, 2, 3])
+    reals = pd.Series([1.5, 2.0, 3.25])
     labels = pd.Series(["a", "b", "c"])
+    flags = pd.Series([True, False, True])
     assert infer_semantic_type(dates) == "datetime"
-    assert infer_semantic_type(numbers) == "numeric"
-    assert infer_semantic_type(labels) == "categorical"
+    assert infer_semantic_type(integers) == "integer"
+    assert infer_semantic_type(reals) == "float"
+    assert infer_semantic_type(labels) == "text"
+    assert infer_semantic_type(flags) == "boolean"

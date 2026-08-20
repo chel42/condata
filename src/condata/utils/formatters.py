@@ -27,9 +27,30 @@ def format_number(value: float | None, digits: int = 3) -> str:
     return f"{value:,.{digits}f}".replace(",", " ")
 
 
+def format_int(value: int) -> str:
+    return f"{int(value):,}".replace(",", " ")
+
+
 def score_level(score: int) -> str:
     if score >= 80:
         return "good"
     if score >= 50:
         return "mid"
     return "bad"
+
+
+def quality_label(score: int) -> str:
+    if score >= 80:
+        return "Bonne qualité"
+    if score >= 50:
+        return "Qualité moyenne"
+    return "Qualité faible"
+
+
+def readiness_label(score: int) -> str:
+    if score >= 80:
+        return "Prêt pour le ML"
+    if score >= 50:
+        return "Moyennement prêt"
+    return "Peu prêt"
+
